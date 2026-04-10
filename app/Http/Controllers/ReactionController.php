@@ -2,64 +2,45 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
 use App\Models\Reaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReactionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // Toggle reaction — if same type clicked again it removes it
+    public function store(Request $request, Post $post)
     {
-        //
-    }
+        $validated = $request->validate([
+            'type' => 'required|in:like,love,haha,sad,angry',
+        ]);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
+        $existing = $post->reactions()
+                         ->where('user_id', Auth::id())
+                         ->first();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+        if ($existing) {
+            if ($existing->type === $validated['type']) {
+                // Same reaction — remove it (toggle off)
+                $existing->delete();
+            } else {
+                // Different reaction — update it
+                $existing->update(['type' => $validated['type']]);
+            }
+        } else {
+            // No reaction yet — create it
+            $post->reactions()->create([
+                'user_id' => Auth::id(),
+                'type'    => $validated['type'],
+            ]);
+        }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Reaction $reaction)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Reaction $reaction)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Reaction $reaction)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Reaction $reaction)
-    {
-        //
+        return back()->with([
+            'reactionSummary' => $post->reactionSummary(),
+            'userReaction'    => $post->reactions()
+                                      ->where('user_id', Auth::id())
+                                      ->value('type'),
+        ]);
     }
 }
