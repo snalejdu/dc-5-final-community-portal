@@ -39,22 +39,24 @@
       </div>
 
       <div class="posts-list">
-        <div v-if="activeFilter === 'all' && pinnedPosts.length">
-          <p class="section-label">📌 Pinned</p>
-          <article v-for="post in pinnedPosts" :key="post.id"
-            class="post-card pinned" @click="router.visit(`/posts/${post.id}`)">
-            <PostCardContent :post="post" />
-          </article>
-        </div>
+  <!-- Pinned section: show when there are pinned posts in current filter -->
+  <div v-if="pinnedPosts.length">
+    <p class="section-label">📌 Pinned</p>
+    <article v-for="post in pinnedPosts" :key="post.id"
+      class="post-card pinned" @click="router.visit(`/posts/${post.id}`)">
+      <PostCardContent :post="post" />
+    </article>
+  </div>
 
-        <p v-if="activeFilter === 'all' && unpinnedPosts.length" class="section-label">Recent</p>
+  <p v-if="unpinnedPosts.length" class="section-label">
+    {{ activeFilter === 'all' ? 'Recent' : 'Posts' }}
+  </p>
 
-        <article v-for="post in unpinnedPosts" :key="post.id"
-          class="post-card" @click="router.visit(`/posts/${post.id}`)">
-          <PostCardContent :post="post" />
-        </article>
-      </div>
-
+  <article v-for="post in unpinnedPosts" :key="post.id"
+    class="post-card" @click="router.visit(`/posts/${post.id}`)">
+    <PostCardContent :post="post" />
+  </article>
+</div>
       <div v-if="posts.last_page > 1" class="pagination">
         <Link v-for="link in posts.links" :key="link.label"
           :href="link.url || '#'" class="page-btn"
